@@ -33,7 +33,7 @@ SITE = {
     "geo": {"lat": "5.3599517", "lng": "-4.0082563"},
     "year": "2026",
 }
-ASSETV = "20260629b2"  # cache-busting — incrémenter à chaque modif CSS/JS
+ASSETV = "20260629c3"  # cache-busting — incrémenter à chaque modif CSS/JS
 
 # ---------------------------------------------------------------- Icônes SVG
 _I = {
@@ -241,10 +241,17 @@ SECRET_INCLUS = [
  ("list", "Formulaire de collecte", "Un formulaire dédié pour nous transmettre vos rendez-vous facilement."),
 ]
 
+# (nom, communes, frais_badge, icône, descriptif professionnel)
 ZONES = [
- ("Zone Standard", "Cocody, Plateau, Marcory, Treichville, Adjamé, Attécoubé", "Inclus dans le tarif de base", "shield"),
- ("Zone Étendue", "Yopougon, Abobo, Bingerville, Anyama, Songon, Dabou, Grand-Bassam", "+ 1 000 à 2 000 FCFA selon distance", "map"),
- ("Zone Spéciale", "Toute destination hors du périmètre ci-dessus", "Sur devis préalable", "route"),
+ ("Zone Standard", "Cocody · Plateau · Marcory · Treichville · Adjamé · Attécoubé",
+  "Inclus", "shield",
+  "Périmètre central d'Abidjan — prestation au tarif de base, sans supplément de déplacement."),
+ ("Zone Étendue", "Yopougon · Abobo · Bingerville · Anyama · Songon · Dabou · Grand-Bassam",
+  "+1 000–2 000 FCFA", "map",
+  "Couronne périphérique — supplément de déplacement appliqué selon la distance."),
+ ("Zone Spéciale", "Toute destination hors du périmètre couvert",
+  "Sur devis", "route",
+  "Intervention sur devis préalable, établi en fonction de la destination."),
 ]
 
 STEPS = [
@@ -417,7 +424,71 @@ BLOG = [
   ],
  },
 ]
+# Métadonnées éditoriales (architecture article façon hub : hero + cartes synthèse + aside).
+BLOG_EXTRA = {
+ "demarches-administratives-abidjan-sans-attente": {
+   "tags": ["Démarches", "Gain de temps", "Abidjan"],
+   "audience": "Particuliers & pros",
+   "points": [
+     "Dépôt, suivi et retrait de vos dossiers menés de bout en bout.",
+     "Un mandataire qui gère la file d'attente et les guichets à votre place.",
+     "Traitement confidentiel de vos pièces justificatives.",
+   ],
+   "impacts": [
+     "Plus de demi-journées perdues en déplacements.",
+     "Un suivi clair de l'avancement de votre dossier.",
+     "Des frais annoncés en FCFA avant toute intervention.",
+   ],
+   "keywords": ["Mairie", "CNPS", "Impôts", "Préfecture", "Acte d'état civil", "Casier judiciaire"],
+   "essentiel": [
+     "Confiez la nature de la démarche et les pièces requises.",
+     "Mon Commis dépose, suit et retire le dossier à votre place.",
+     "Vous êtes informé à chaque étape, sans vous déplacer.",
+   ],
+ },
+ "deleguer-courses-abidjan-budget-maitrise": {
+   "tags": ["Courses", "Budget", "Abidjan"],
+   "audience": "Particuliers & pros",
+   "points": [
+     "Approvisionnement marché, officine et supérette délégué.",
+     "Liste précise + budget plafond = dépense maîtrisée.",
+     "Contrôle de la fraîcheur et des quantités.",
+   ],
+   "impacts": [
+     "Deux à trois heures récupérées chaque semaine.",
+     "Un budget respecté, sans achats superflus.",
+     "Vos achats sensibles traités en toute discrétion.",
+   ],
+   "keywords": ["Marché", "Officine", "Supérette", "Liste de courses", "Budget plafond", "Livraison"],
+   "essentiel": [
+     "Transmettez votre liste et votre budget plafond.",
+     "Le commis sélectionne et contrôle la qualité.",
+     "Livraison à votre adresse, budget respecté.",
+   ],
+ },
+ "secretariat-a-distance-ne-plus-rater-rendez-vous": {
+   "tags": ["Secrétariat", "Organisation", "Pros"],
+   "audience": "Professionnels",
+   "points": [
+     "Agenda saisi, rappelé et confirmé pour vous.",
+     "Trois formules mensuelles selon votre volume de RDV.",
+     "Les bénéfices d'un secrétariat, sans embaucher.",
+   ],
+   "impacts": [
+     "Plus aucun rendez-vous oublié ni doublé.",
+     "Une image professionnelle renforcée.",
+     "Aucune charge fixe d'un poste à temps plein.",
+   ],
+   "keywords": ["Agenda", "Google Calendar", "Rappels", "Confirmations", "STARTER", "CONFORT", "PREMIUM"],
+   "essentiel": [
+     "Vos rendez-vous centralisés dans un agenda partagé.",
+     "Rappel personnalisé 30 min avant chaque échéance.",
+     "Confirmation téléphonique auprès de vos interlocuteurs.",
+   ],
+ },
+}
 for _a in BLOG:
+    _a.update(BLOG_EXTRA[_a["slug"]])
     _a["url"] = f"blog-{_a['slug']}.html"
 
 # ================================================================ STRUCTURE
@@ -701,23 +772,29 @@ def section_services(eyebrow="Nos services", titre="Tout ce qu'un commis peut fa
   </div>
 </section>"""
 
-def section_steps():
-    cards = ""
-    for i, (icn, t, d) in enumerate(STEPS, 1):
-        cards += f"""<article class="mc-step reveal">
-  <span class="mc-step-num">{i:02d}</span>
-  <span class="nx-ico is-navy">{ico(icn)}</span>
-  <h3>{t}</h3>
-  <p>{d}</p>
+def compact_card(icon, title, badge, text, sub=None):
+    """Carte compacte horizontale (icône + en-tête avec badge + descriptif), façon « Zones »."""
+    badge_html = f'<span class="mc-compact-badge">{badge}</span>' if badge else ""
+    sub_html = f'<p class="mc-compact-sub">{ico("pin")} <span>{sub}</span></p>' if sub else ""
+    return f"""<article class="mc-compact-card reveal">
+  <span class="mc-compact-ico">{ico(icon)}</span>
+  <div class="mc-compact-body">
+    <div class="mc-compact-head"><h3>{title}</h3>{badge_html}</div>
+    <p class="mc-compact-text">{text}</p>
+    {sub_html}
+  </div>
 </article>
 """
+
+def section_steps():
+    cards = "".join(compact_card(icn, t, f"Étape {i}", d) for i, (icn, t, d) in enumerate(STEPS, 1))
     return f"""<section class="section">
   <div class="container">
     <div class="section-header reveal"><div class="section-heading">
-      <span class="nx-eyebrow">Comment ça marche</span>
+      <span class="nx-eyebrow">Comment ça marche&nbsp;?</span>
       <h2 class="section-title">Trois étapes, zéro stress</h2>
     </div></div>
-    <div class="nx-grid cols-3 mc-steps">{cards}</div>
+    <div class="mc-compact-grid mc-swipe">{cards}</div>
   </div>
 </section>"""
 
@@ -728,35 +805,27 @@ def section_args():
                   f'<span class="mc-why-num">0{n}</span>'
                   f'<span class="mc-why-ico">{ico(i)}</span>'
                   f'<h3>{t}</h3><p>{d}</p></article>\n')
-    return f"""<section class="section mc-why-section">
+    return f"""<section class="section section-soft">
   <div class="container">
     <div class="section-header reveal"><div class="section-heading">
-      <span class="nx-eyebrow nx-eyebrow-light">Pourquoi nous</span>
+      <span class="nx-eyebrow">Pourquoi nous&nbsp;?</span>
       <h2 class="section-title">Pourquoi Mon Commis&nbsp;?</h2>
       <p class="section-copy">Un partenaire de proximité, fiable et discret, qui prend en charge vos tâches du quotidien — pour que vous vous consacriez à l'essentiel.</p>
     </div></div>
-    <div class="mc-why-grid">{cards}</div>
+    <div class="mc-why-grid mc-swipe">{cards}</div>
   </div>
 </section>"""
 
 def section_zones():
-    rows = ""
-    for nom, communes, frais, icn in ZONES:
-        rows += f"""<article class="nx-card reveal">
-  <span class="nx-ico is-navy">{ico(icn)}</span>
-  <h3>{nom}</h3>
-  <p>{communes}</p>
-  <p class="nx-zone-fee">{ico('wallet')} <strong>{frais}</strong></p>
-</article>
-"""
+    rows = "".join(compact_card(icn, nom, frais, pro, sub=communes) for nom, communes, frais, icn, pro in ZONES)
     return f"""<section class="section" id="zones">
   <div class="container">
     <div class="section-header reveal"><div class="section-heading">
       <span class="nx-eyebrow">Zones de couverture</span>
       <h2 class="section-title">De Cocody à Grand-Bassam — et au-delà</h2>
-      <p class="section-copy">Nous intervenons dans toutes les communes d'Abidjan. Les frais de déplacement dépendent de la zone.</p>
+      <p class="section-copy">Nous intervenons dans toutes les communes du Grand Abidjan. Les frais de déplacement sont déterminés selon la zone d'intervention.</p>
     </div></div>
-    <div class="nx-grid cols-3">{rows}</div>
+    <div class="mc-compact-grid mc-swipe">{rows}</div>
   </div>
 </section>"""
 
@@ -795,7 +864,7 @@ def section_formules(compact=False):
       <h2 class="section-title">Votre agenda, géré pour vous</h2>
       <p class="section-copy">Un secrétariat personnel par abonnement mensuel : vos rendez-vous saisis, rappelés et confirmés — vous ne ratez plus rien.</p>
     </div></div>
-    <div class="nx-grid cols-3 nx-prices">{formules_cards()}</div>
+    <div class="nx-grid cols-3 nx-prices mc-swipe">{formules_cards()}</div>
     {inclus_block}
   </div>
 </section>"""
@@ -835,7 +904,7 @@ def section_testimonials():
       <h2 class="section-title">La satisfaction, notre meilleure référence</h2>
       <p class="section-copy">Des clients qui ont retrouvé du temps — et la tranquillité d'esprit.</p>
     </div></div>
-    <div class="mc-quote-grid">{cards}</div>
+    <div class="mc-quote-grid mc-swipe">{cards}</div>
   </div>
 </section>"""
 
@@ -992,13 +1061,14 @@ def cta(title="Besoin d'un coup de main aujourd'hui ?",
 </section>"""
 
 def section_tarifs():
+    # (titre, badge, descriptif, icône)
     rows = [
-        ("Tarif de base (commission)", "Selon grille tarifaire communiquée au client", "wallet"),
-        ("Supplément urgence", "+50 % du tarif de base (intervention dans l'heure)", "bolt"),
-        ("Shopping (prestation)", "5 000 à 15 000 FCFA selon la complexité des achats", "gift"),
-        ("Collecte de documents", "Prestation complémentaire, facturée séparément", "doc"),
+        ("Tarif de base", "Sur grille", "Commission selon la grille tarifaire communiquée au client avant la mission.", "wallet"),
+        ("Supplément urgence", "+50 %", "Appliqué sur le tarif de base pour une intervention dans l'heure.", "bolt"),
+        ("Shopping", "5 000–15 000 FCFA", "Tarif de la prestation selon la complexité et le volume des achats.", "gift"),
+        ("Collecte de documents", "En sus", "Prestation complémentaire, facturée séparément du tarif de base.", "doc"),
     ]
-    cards = "".join(f'<article class="nx-card reveal"><span class="nx-ico is-lime">{ico(i)}</span><h3>{t}</h3><p>{d}</p></article>\n' for t, d, i in rows)
+    cards = "".join(compact_card(i, t, b, d) for t, b, d, i in rows)
     return f"""<section class="section section-soft" id="tarifs">
   <div class="container">
     <div class="section-header reveal"><div class="section-heading">
@@ -1006,7 +1076,7 @@ def section_tarifs():
       <h2 class="section-title">Des tarifs clairs, sans surprise</h2>
       <p class="section-copy">Les frais de commission sont réglés avant le début de chaque mission. Paiement en espèces, mobile money (Orange, MTN, Moov, Wave) ou virement.</p>
     </div></div>
-    <div class="nx-grid cols-4">{cards}</div>
+    <div class="mc-compact-grid mc-swipe">{cards}</div>
   </div>
 </section>"""
 
@@ -1154,7 +1224,7 @@ def build_about():
       <span class="nx-eyebrow">Nos engagements</span>
       <h2 class="section-title">Ce qui fait la différence</h2>
     </div></div>
-    <div class="nx-grid cols-4">{vals}</div>
+    <div class="nx-grid cols-4 mc-swipe">{vals}</div>
   </div></section>"""
             + cta())
     return (head("À propos — Mon Commis, conciergerie à Abidjan",
@@ -1239,68 +1309,73 @@ def build_blog():
             + header("blog") + body + footer())
 
 def _render_article_body(a):
-    """Rend le corps + collecte le sommaire (id, texte) à partir des <h2>."""
-    out = ""
+    """Groupe le corps en blocs .article-section (un par h2) + collecte le sommaire."""
     toc = []
+    sections = []   # [hid, titre, html_interne]
+    cur = None
     n = 0
     for kind, content in a["body"]:
         if kind == "h2":
+            if cur:
+                sections.append(cur)
             n += 1
-            hid = f"art-sec-{n}"
+            hid = f"sec-{n}"
             toc.append((hid, content))
-            out += f'<h2 id="{hid}">{content}</h2>\n'
-        elif kind == "p":
-            out += f'<p>{content}</p>\n'
-        elif kind == "ul":
-            lis = "".join(f'<li>{ico("check")}<span>{x}</span></li>' for x in content)
-            out += f'<ul class="nx-article-list">{lis}</ul>\n'
-        elif kind == "quote":
-            out += (f'<blockquote class="nx-article-quote">'
-                    f'<span class="nx-article-quote-mark" aria-hidden="true">&ldquo;</span>'
-                    f'<p>{content}</p></blockquote>\n')
-    return out, toc
+            cur = [hid, content, ""]
+        else:
+            if cur is None:
+                cur = ["sec-0", "", ""]
+            if kind == "p":
+                cur[2] += f"<p>{content}</p>\n"
+            elif kind == "ul":
+                cur[2] += "<ul>" + "".join(f"<li>{x}</li>" for x in content) + "</ul>\n"
+            elif kind == "quote":
+                cur[2] += f'<div class="article-highlight"><p>{content}</p></div>\n'
+    if cur:
+        sections.append(cur)
+    html = ""
+    for hid, title, inner in sections:
+        head_h2 = f'<h2>{title}</h2>\n' if title else ""
+        html += f'<div class="article-section" id="{hid}">{head_h2}{inner}</div>\n'
+    return html, toc
 
 def build_article(a):
     D = SITE["domain"]
     url = D + "/" + a["url"]
     svc = SERVICES_BY_SLUG.get(a.get("service"))
     related = [b for b in BLOG if b["slug"] != a["slug"]]
-    rel_cards = "".join(blog_card(b) for b in related)
-    body_html, toc = _render_article_body(a)
+    sections_html, toc = _render_article_body(a)
+    wa_svg = SOCIAL['whatsapp'].replace('<svg ', '<svg class="nx-svg" ', 1)
+    fb_svg = SOCIAL['facebook'].replace('<svg ', '<svg class="nx-svg" ', 1)
 
-    # Sommaire (table des matières) avec scroll-spy.
-    toc_links = "".join(f'<a href="#{hid}" data-toc-link>{txt}</a>\n' for hid, txt in toc)
-    toc_block = f"""<div class="nx-toc">
-        <span class="nx-toc-title">{ico('list')} Sommaire</span>
-        <nav class="nx-toc-nav" aria-label="Sommaire de l'article" data-toc>{toc_links}</nav>
-      </div>""" if toc else ""
+    tags_html = "".join(f"<span>{t}</span>" for t in a["tags"])
+    points_li = "".join(f"<li>{x}</li>" for x in a["points"])
+    impacts_li = "".join(f"<li>{x}</li>" for x in a["impacts"])
+    kw_li = "".join(f"<li>{k}</li>" for k in a["keywords"])
+    essentiel_li = "".join(f"<li>{x}</li>" for x in a["essentiel"])
+    toc_li = "".join(f'<li><a href="#{hid}">{txt}</a></li>' for hid, txt in toc)
 
-    # Boutons de partage.
+    if svc:
+        primary_href, primary_label = f'{svc["url"]}#commander', "Commander cette prestation"
+    else:
+        primary_href, primary_label = "contact.html", "Demander un commis"
+
     wa_share = "https://wa.me/?text=" + quote(f"{a['title']} — {url}")
     fb_share = "https://www.facebook.com/sharer/sharer.php?u=" + quote(url)
-    share_block = f"""<div class="nx-share">
-        <span class="nx-share-title">Partager</span>
-        <div class="nx-share-row">
-          <a class="nx-share-btn is-wa" href="{wa_share}" target="_blank" rel="noopener noreferrer" aria-label="Partager sur WhatsApp">{SOCIAL['whatsapp'].replace('<svg ', '<svg class="nx-svg" ', 1)}</a>
-          <a class="nx-share-btn is-fb" href="{fb_share}" target="_blank" rel="noopener noreferrer" aria-label="Partager sur Facebook">{SOCIAL['facebook'].replace('<svg ', '<svg class="nx-svg" ', 1)}</a>
-          <button type="button" class="nx-share-btn is-copy" data-copy="{url}" aria-label="Copier le lien">{ico('list')}</button>
-        </div>
+
+    svc_card = ""
+    if svc:
+        svc_card = f"""<div class="article-card article-card-highlight">
+        <h3>Service associé</h3>
+        <p><strong>{svc['title']}</strong> — {svc['tagline']}</p>
+        <a class="article-card-cta" href="{svc['url']}#commander">Voir le service {ico('arrow')}</a>
       </div>"""
 
-    # Carte service (sidebar) + bandeau CTA (fin d'article).
-    aside_svc = ""
-    svc_cta = ""
-    if svc:
-        aside_svc = (f'<a class="nx-aside-svc" href="{svc["url"]}#commander">'
-                     f'<span class="nx-aside-svc-ico">{ico(svc["icon"])}</span>'
-                     f'<span class="nx-aside-svc-txt"><small>Service associé</small>'
-                     f'<strong>{svc["title"]}</strong></span>'
-                     f'<span class="nx-aside-svc-arr">{ico("arrow")}</span></a>')
-        svc_cta = (f'<aside class="nx-article-cta reveal">'
-                   f'<span class="nx-eyebrow nx-eyebrow-light">Service associé</span>'
-                   f'<h2>Besoin de « {svc["title"]} » ?</h2><p>{svc["tagline"]}</p>'
-                   f'<div class="nx-cta-row"><a class="btn-lime" href="{svc["url"]}#commander">{ico("send")} Commander cette prestation</a>'
-                   f'<a class="btn-secondary btn-on-dark" href="https://wa.me/{SITE["wa"]}" target="_blank" rel="noopener noreferrer">{ico("message")} WhatsApp</a></div></aside>')
+    rel_html = ""
+    for b in related:
+        rel_html += (f'<a href="{b["url"]}" class="related-article">'
+                     f'<span>{b["cat"]}</span><strong>{b["title"]}</strong>'
+                     f'<p>{b["excerpt"]}</p></a>')
 
     ld_extra = {
         "@type": "BlogPosting", "headline": a["title"], "description": a["excerpt"],
@@ -1310,53 +1385,92 @@ def build_article(a):
         "mainEntityOfPage": url + "#webpage", "inLanguage": "fr-CI", "articleSection": a["cat"],
         "wordCount": sum(len(c.split()) for k, c in a["body"] if k in ("p", "quote")),
     }
-    body = f"""<span class="nx-read-bar" data-read-bar aria-hidden="true"></span>
-<article class="nx-article">
-  <header class="nx-article-head">
-    <div class="nx-article-head-bg" aria-hidden="true"></div>
-    <div class="container">
-      <nav class="nx-breadcrumb reveal" aria-label="Fil d'Ariane">
-        <a href="index.html">Accueil</a> {ico('arrow')} <a href="blog.html">Blog</a> {ico('arrow')} <span>{a['cat']}</span>
-      </nav>
-      <span class="nx-blog-tag nx-blog-tag-solo reveal">{ico(a['icon'])} {a['cat']}</span>
-      <h1 class="nx-article-title reveal">{a['title']}</h1>
-      <p class="nx-article-standfirst reveal">{a['excerpt']}</p>
-      <div class="nx-article-byline reveal">
-        <span class="nx-article-author"><span class="nx-article-author-ava">MC</span>
-          <span class="nx-article-author-meta"><strong>Par l'équipe Mon Commis</strong>
-            <small><time datetime="{a['date']}">{a['date_disp']}</time> · {a['read']}</small></span></span>
-      </div>
-    </div>
-  </header>
-  <div class="container">
-    <figure class="nx-article-cover reveal">
-      <img src="{a['img']}" alt="{a['title']}" fetchpriority="high" decoding="async">
-    </figure>
-    <div class="nx-article-layout">
-      <aside class="nx-article-aside">
-        {toc_block}
-        {share_block}
-        {aside_svc}
-      </aside>
-      <div class="nx-article-main">
-        <p class="nx-article-lead">{a['lead']}</p>
-        {body_html}
-        {svc_cta}
-        <div class="nx-article-foot reveal">
-          <a class="nx-article-back" href="blog.html">{ico('arrow')} Retour au blog</a>
-          <span class="nx-article-tag-pill">{ico(a['icon'])} {a['cat']}</span>
+    body = f"""<section class="article-hero">
+  <div class="container article-hero-grid">
+    <div class="article-hero-content">
+      <div class="article-hero-panel reveal">
+        <nav class="article-breadcrumb" aria-label="Fil d'Ariane">
+          <a href="index.html">Accueil</a><span>/</span><a href="blog.html">Blog</a><span>/</span><span>{a['cat']}</span>
+        </nav>
+        <span class="article-hero-badge">Article de blog · Mon Commis</span>
+        <div class="article-tags">{tags_html}</div>
+        <h1>{a['title']}</h1>
+        <p>{a['excerpt']}</p>
+        <div class="article-meta">
+          <span>{a['date_disp']}</span>
+          <span>Par l'équipe Mon Commis</span>
+        </div>
+        <div class="article-meta article-meta-kpi" aria-label="Contexte de lecture">
+          <span>{ico('clock')} {a['read']}</span>
+          <span>{ico('users')} {a['audience']}</span>
+          <span>{ico('calendar')} Mis à jour {a['date_disp']}</span>
+        </div>
+        <div class="article-hero-actions">
+          <a class="btn-lime" href="{primary_href}">{ico('send')} {primary_label}</a>
+          <a class="btn-secondary" href="blog.html">{ico('arrow')} Retour au blog</a>
         </div>
       </div>
     </div>
+    <div class="article-hero-summary">
+      <div class="summary-card summary-key reveal">
+        <h3>Points clés</h3>
+        <ul class="summary-list">{points_li}</ul>
+      </div>
+      <div class="summary-card summary-impact reveal">
+        <h3>Bénéfices pour vous</h3>
+        <ul class="summary-list">{impacts_li}</ul>
+      </div>
+      <div class="summary-card summary-keywords reveal">
+        <h3>Mots clés</h3>
+        <ul class="summary-list">{kw_li}</ul>
+      </div>
+    </div>
   </div>
-</article>
-<section class="section section-soft">
-  <div class="container">
-    <div class="section-header reveal"><div class="section-heading">
-      <span class="nx-eyebrow">À lire aussi</span>
-      <h2 class="section-title">D'autres conseils pour gagner du temps</h2>
-    </div></div>
-    <div class="nx-blog-grid">{rel_cards}</div>
+</section>
+<section class="article-body">
+  <div class="container article-body-grid">
+    <article class="article-content">
+      <figure class="article-cover"><img src="{a['img']}" alt="{a['title']}" fetchpriority="high" decoding="async"></figure>
+      <div class="article-intro">
+        <h2>L'essentiel</h2>
+        <p>{a['lead']}</p>
+        <ul class="article-quick-list">{essentiel_li}</ul>
+      </div>
+      {sections_html}
+      <div class="article-section article-final-note" id="conclusion">
+        <h2>Passez à l'action</h2>
+        <p>Confiez cette tâche à Mon Commis : devis clair en FCFA, réponse rapide, dans toutes les communes d'Abidjan.</p>
+        <div class="article-final-actions">
+          <a class="btn-lime" href="{primary_href}">{ico('send')} {primary_label}</a>
+          <a class="btn-secondary" href="https://wa.me/{SITE['wa']}" target="_blank" rel="noopener noreferrer">{ico('message')} WhatsApp</a>
+        </div>
+      </div>
+      <div class="article-share">
+        <span class="article-share-label">Partager cet article</span>
+        <div class="article-share-row">
+          <a class="art-share-btn is-wa" href="{wa_share}" target="_blank" rel="noopener noreferrer" aria-label="Partager sur WhatsApp">{wa_svg}</a>
+          <a class="art-share-btn is-fb" href="{fb_share}" target="_blank" rel="noopener noreferrer" aria-label="Partager sur Facebook">{fb_svg}</a>
+          <button type="button" class="art-share-btn is-copy" data-copy="{url}" aria-label="Copier le lien">{ico('list')}</button>
+        </div>
+      </div>
+    </article>
+    <aside class="article-aside">
+      <div class="article-card article-card-toc">
+        <h3 class="toc-title">Sommaire</h3>
+        <ul class="article-toc">{toc_li}</ul>
+      </div>
+      {svc_card}
+      <div class="article-card article-related">
+        <h3>À lire aussi</h3>
+        <div class="related-articles">{rel_html}</div>
+      </div>
+      <div class="article-card article-card-contact">
+        <h3>Une demande à confier ?</h3>
+        <p>Décrivez votre besoin : réponse rapide et devis clair en FCFA, dans tout Abidjan.</p>
+        <a class="btn-lime" href="contact.html">{ico('send')} Demander un commis</a>
+        <a class="article-card-cta" href="https://wa.me/{SITE['wa']}" target="_blank" rel="noopener noreferrer">{ico('message')} Discuter sur WhatsApp</a>
+      </div>
+    </aside>
   </div>
 </section>"""
     return (head(f"{a['title']} | Blog Mon Commis", a["excerpt"], a["url"], "page-inner page-article",

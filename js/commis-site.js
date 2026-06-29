@@ -1013,30 +1013,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // ---- Articles : sommaire actif au défilement (scroll-spy) ----
-    var tocNav = document.querySelector("[data-toc]");
-    if (tocNav) {
-        var headings = document.querySelectorAll(".nx-article-main h2[id]");
-        var tocLinks = tocNav.querySelectorAll("[data-toc-link]");
-        var linkById = {};
-        tocLinks.forEach(function (l) {
-            var id = (l.getAttribute("href") || "").replace("#", "");
-            if (id) { linkById[id] = l; }
-        });
-        if (headings.length) {
-            var setActive = function (id) {
-                tocLinks.forEach(function (l) { l.classList.remove("is-active"); });
-                if (linkById[id]) { linkById[id].classList.add("is-active"); }
-            };
-            var spy = new IntersectionObserver(function (entries) {
-                entries.forEach(function (e) {
-                    if (e.isIntersecting) { setActive(e.target.id); }
-                });
-            }, { rootMargin: "-90px 0px -68% 0px", threshold: 0 });
-            headings.forEach(function (h) { spy.observe(h); });
-        }
-    }
-
     // ---- Articles : barre de progression de lecture ----
     var readBar = document.querySelector("[data-read-bar]");
     if (readBar) {
